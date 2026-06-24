@@ -1,0 +1,302 @@
+/* =====================================================
+   LOGIN — portado fielmente de LoginMarfim/src/app/app.css
+   (mesma tela, mesmo CSS; ajustado apenas para funcionar
+   como overlay sobre a Central de chamados)
+===================================================== */
+
+.login-page {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  background-color: var(--bg-body, #f8f8f8);
+  overflow: hidden;
+  padding: 1rem;
+  box-sizing: border-box;
+  font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* ===== Theme Toggle (Moon Icon) ===== */
+
+.theme-toggle {
+  position: absolute;
+  top: 0.5rem;
+  right: 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #0B2B4E;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+  z-index: 10;
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-toggle:hover {
+  background-color: rgba(11, 43, 78, 0.08);
+  transform: scale(1.1);
+}
+
+.theme-toggle:active {
+  transform: scale(0.95);
+}
+
+body.dark-theme .theme-toggle:hover {
+  background-color: rgba(255, 215, 0, 0.1);
+}
+
+/* ===== Elephant Image ===== */
+
+.elephant-container {
+  margin-bottom: 0.75rem;
+  animation: fadeInDown 0.8s ease-out;
+  display: flex;
+  justify-content: center;
+}
+
+.elephant-image {
+  width: 180px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
+  transition: transform 0.3s ease;
+}
+
+.elephant-image:hover {
+  transform: scale(1.03);
+}
+
+/* ===== Password recovery / copyright ===== */
+
+.password-recovery {
+  padding-top: 10px;
+  font-size: 13px;
+  color: #013170;
+  text-align: center;
+  font-weight: 400;
+  animation: fadeIn 1s ease-out 0.3s both;
+  cursor: pointer;
+  padding-bottom: 30px;
+}
+
+.direitos-autorais {
+  font-size: 10px;
+  color: #acacac;
+  text-align: center;
+  font-weight: 400;
+  animation: fadeIn 1s ease-out 0.3s both;
+}
+
+/* ===== Login Card ===== */
+
+.login-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 2rem 2rem 2.25rem;
+  width: 100%;
+  max-width: 340px;
+  box-shadow: 5px 5px 24px rgba(0, 0, 0, 0.04);
+  animation: fadeInUp 0.7s ease-out 0.2s both;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  z-index: 5;
+}
+
+.login-card:hover {
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 2px 8px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+}
+
+/* ===== Login Title ===== */
+
+.login-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0B2B4E;
+  text-align: center;
+  margin: 0 0 1.5rem 0;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ===== Form ===== */
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+/* ===== Input Group ===== */
+
+.input-group {
+  position: relative;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: var(--text-main, #333333);
+  background-color: var(--bg-body, #F0F0F0);
+  border: 1.5px #DCDCDC;
+  border-radius: 10px;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.input-group input::placeholder {
+  color: #999999;
+  font-weight: 400;
+}
+
+.input-group input:focus {
+  border-color: #0B2B4E;
+  background-color: var(--bg-body);
+  box-shadow: 0 0 0 3px rgba(11, 43, 78, 0.1);
+}
+
+.input-group input:hover:not(:focus) {
+  border-color: #B0B0B0;
+}
+
+/* ===== Login Button ===== */
+
+.btn-entrar {
+  width: 100%;
+  padding: 0.875rem;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: #FFFFFF;
+  background-color: #0B2B4E;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  margin-top: 0.25rem;
+  transition: background-color 0.3s ease, transform 0.15s ease, box-shadow 0.3s ease;
+}
+
+.btn-entrar:hover {
+  background-color: #0E3A6B;
+  box-shadow: 0 4px 16px rgba(11, 43, 78, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-entrar:active {
+  background-color: #081E36;
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(11, 43, 78, 0.2);
+}
+
+/* ===== Animations ===== */
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ===== Responsive ===== */
+
+@media screen and (max-width: 767px) {
+  .login-card {
+    padding: 1.5rem 1.25rem 1.75rem;
+    max-width: 300px;
+  }
+
+  .elephant-image {
+    width: 140px;
+  }
+}
+
+@media screen and (min-width: 768px) {
+  .elephant-image {
+    width: 170px;
+  }
+
+  .login-card {
+    max-width: 380px;
+    padding: 2.25rem 2.5rem 2.5rem;
+  }
+}
+
+/* =====================================================
+   TEMA ESCURO — portado de LoginMarfim/src/app/dark-theme.css
+===================================================== */
+
+body.dark-theme {
+  --bg-body: #272727;
+  --text-main: #e0e0e0;
+}
+
+body.dark-theme .login-page {
+  background-color: #272727;
+}
+
+body.dark-theme .login-card {
+  background-color: #313233;
+  box-shadow: none;
+}
+
+body.dark-theme .login-card:hover {
+  box-shadow: 5px 5px 24px rgba(0, 0, 0, 0.04);
+}
+
+body.dark-theme .theme-toggle {
+  color: #ffffff;
+}
+
+body.dark-theme .theme-toggle:hover {
+  background-color: rgba(255, 215, 0, 0.1);
+}
+
+body.dark-theme .login-title {
+  color: #e0e0e0;
+}
+
+body.dark-theme .input-group input {
+  --bg-body: #272727;
+  --text-main: #a09f9f;
+  border-color: #a09f9f;
+}
+
+body.dark-theme .input-group input::placeholder {
+  color: #bbbbbb;
+}
+
+body.dark-theme .input-group input:focus {
+  background-color: var(--bg-body);
+  color: #ffffff;
+  border-color: #3d3d3d;
+}
+
+body.dark-theme .password-recovery {
+  color: #0084f0;
+}
+
+body.dark-theme .btn-entrar {
+  color: #e0e0e0;
+  background-color: #0b2033 !important;
+  border-color: #272727 !important;
+}

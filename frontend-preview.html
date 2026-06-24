@@ -269,34 +269,32 @@
   </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="preview-responsive.css">
+  <link rel="stylesheet" href="login.css">
 </head>
 <body>
-  <div class="login-screen" id="loginView">
-    <button class="login-theme-toggle" id="loginThemeToggle" type="button" aria-label="Alternar tema">
-      <span class="material-symbols-rounded">dark_mode</span>
+  <div class="login-page" id="loginView">
+    <button class="theme-toggle" id="loginThemeToggle" type="button" aria-label="Alternar tema">
+      <i class="fa-regular fa-moon" id="loginThemeIcon"></i>
     </button>
     <div class="login-card">
       <div class="elephant-container">
-        <img src="Cabelefant.avif" alt="Tintas Marfim" class="elephant-image" onerror="this.style.display='none'">
+        <img src="Cabelefant.avif" alt="Elephant Art" class="elephant-image" />
       </div>
-      <h1 class="login-title">Login</h1>
+      <h1 class="login-title">LOGIN</h1>
       <form class="login-form" id="loginForm">
         <div class="input-group">
-          <span class="material-symbols-rounded">person</span>
-          <input type="text" id="loginUser" placeholder="Usuario" autocomplete="username" required>
+          <input type="text" id="loginUser" placeholder="Usuário" name="username" required />
         </div>
         <div class="input-group">
-          <span class="material-symbols-rounded">lock</span>
-          <input type="password" id="loginPass" placeholder="Senha" autocomplete="current-password" required>
-          <button type="button" class="toggle-pass" id="togglePass" aria-label="Mostrar senha"><span class="material-symbols-rounded">visibility</span></button>
+          <input type="password" id="loginPass" placeholder="Senha" name="password" required />
         </div>
-        <p class="login-error hidden" id="loginError">Usuario ou senha invalidos.</p>
         <button type="submit" class="btn-entrar" id="btnEntrar">Entrar</button>
       </form>
       <p class="password-recovery">Esqueceu sua senha?</p>
-      <p class="direitos-autorais">© Todos os direitos reservados a Tintas Marfim</p>
+      <p class="direitos-autorais">@Todos os direitos reservados a Tintas Marfim</p>
     </div>
   </div>
 
@@ -692,8 +690,8 @@
     const ADMIN = { user: 'admin', pass: 'admin123' };
     function applyTheme(dark) {
       document.body.classList.toggle('dark-theme', dark);
-      const loginIcon = el('loginThemeToggle') && el('loginThemeToggle').querySelector('.material-symbols-rounded');
-      if (loginIcon) loginIcon.textContent = dark ? 'light_mode' : 'dark_mode';
+      const icon = el('loginThemeIcon');
+      if (icon) { icon.classList.toggle('fa-moon', !dark); icon.classList.toggle('fa-sun', dark); }
       const sw = el('darkModeSwitch'); if (sw) sw.checked = dark;
     }
     function showApp() {
@@ -705,15 +703,15 @@
       e.preventDefault();
       const u = el('loginUser').value.trim().toLowerCase();
       const p = el('loginPass').value;
-      if (u === ADMIN.user && p === ADMIN.pass) { el('loginError').classList.add('hidden'); showApp(); }
-      else { el('loginError').classList.remove('hidden'); el('loginPass').focus(); el('loginPass').select(); }
-    });
-    el('togglePass').addEventListener('click', () => {
-      const input = el('loginPass');
-      const icon = el('togglePass').querySelector('.material-symbols-rounded');
-      const show = input.type === 'password';
-      input.type = show ? 'text' : 'password';
-      icon.textContent = show ? 'visibility_off' : 'visibility';
+      if (u === ADMIN.user && p === ADMIN.pass) { showApp(); }
+      else {
+        const card = document.querySelector('.login-card');
+        if (card && card.animate) card.animate(
+          [{ transform: 'translateX(0)' }, { transform: 'translateX(-7px)' }, { transform: 'translateX(7px)' }, { transform: 'translateX(-4px)' }, { transform: 'translateX(0)' }],
+          { duration: 320, easing: 'ease-in-out' });
+        el('loginPass').value = '';
+        el('loginPass').focus();
+      }
     });
     el('loginThemeToggle').addEventListener('click', () => applyTheme(!document.body.classList.contains('dark-theme')));
 
