@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chamados Internos - Preview</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; margin: 0; }
+    body {
+      color: #1f2933;
+      background: #f4f6f8;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .app-shell { display: grid; grid-template-columns: 280px minmax(0, 1fr); min-height: 100dvh; }
+    .sidebar {
+      position: sticky;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      height: 100dvh;
+      padding: 24px 18px;
+      color: #f8fafc;
+      background: #17324d;
+    }
+    .brand, .user-panel { display: flex; align-items: center; gap: 12px; }
+    .brand-mark, .avatar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      flex: 0 0 auto;
+      border-radius: 8px;
+      font-weight: 800;
+    }
+    .brand-mark { color: #17324d; background: #8ed1c6; }
+    .avatar { color: #fff; background: #2f5f87; }
+    .brand strong, .user-panel strong { display: block; font-size: 15px; }
+    .brand small, .user-panel small { display: block; margin-top: 2px; color: #cbd8e3; font-size: 12px; }
+    .new-ticket-button, .main-nav button, .action-bar button, .form-submit, .dialog-actions button, .icon-button {
+      border: 0;
+      border-radius: 8px;
+    }
+    .new-ticket-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 44px;
+      color: #11263a;
+      font-weight: 800;
+      background: #8ed1c6;
+    }
+    .main-nav { display: flex; flex: 1; flex-direction: column; gap: 6px; }
+    .main-nav button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 42px;
+      padding: 0 12px;
+      color: #e5edf5;
+      text-align: left;
+      background: transparent;
+    }
+    .main-nav button:hover, .main-nav button.active { color: #fff; background: #254864; }
+    .nav-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 22px;
+      height: 22px;
+      margin-left: auto;
+      border-radius: 999px;
+      color: #17324d;
+      font-size: 12px;
+      font-weight: 800;
+      background: #ffd166;
+    }
+    .user-panel { padding-top: 18px; border-top: 1px solid rgba(255,255,255,.16); }
+    .workspace { display: flex; flex-direction: column; gap: 18px; min-width: 0; padding: 22px; }
+    .topbar { display: grid; grid-template-columns: minmax(170px,.5fr) minmax(260px,1fr) auto; gap: 16px; align-items: center; }
+    .eyebrow { margin: 0 0 4px; color: #617386; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 0; font-size: 28px; line-height: 1.15; }
+    h2 { margin-bottom: 0; font-size: 22px; line-height: 1.25; }
+    h3 { margin-bottom: 8px; font-size: 14px; }
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 44px;
+      padding: 0 14px;
+      border: 1px solid #d9e2ec;
+      border-radius: 8px;
+      background: #fff;
+    }
+    .search-box input { width: 100%; min-width: 0; border: 0; outline: 0; color: #1f2933; }
+    .icon-button {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      color: #17324d;
+      background: #fff;
+      border: 1px solid #d9e2ec;
+      font-weight: 800;
+    }
+    .icon-button span {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
+      border-radius: 999px;
+      color: #17324d;
+      font-size: 11px;
+      font-weight: 800;
+      background: #ffd166;
+    }
+    .metric-row { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; }
+    .metric { min-height: 86px; padding: 16px; border: 1px solid #d9e2ec; border-radius: 8px; background: #fff; }
+    .metric span { display: block; color: #617386; font-size: 13px; font-weight: 700; }
+    .metric strong { display: block; margin-top: 8px; font-size: 28px; }
+    .metric.urgent { border-color: #f5c2c7; background: #fff5f5; }
+    .ticket-layout { display: grid; grid-template-columns: minmax(300px,.42fr) minmax(420px,1fr); gap: 16px; min-height: 0; }
+    .ticket-list, .ticket-detail, .form-view, .notifications-view { border: 1px solid #d9e2ec; border-radius: 8px; background: #fff; }
+    .ticket-list { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+    .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 8px; }
+    .section-heading span { color: #617386; font-size: 13px; font-weight: 700; }
+    .ticket-card {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+      min-height: 132px;
+      padding: 14px;
+      border: 1px solid #d9e2ec;
+      border-radius: 8px;
+      color: inherit;
+      text-align: left;
+      background: #fff;
+    }
+    .ticket-card:hover, .ticket-card.selected { border-color: #2f5f87; box-shadow: 0 8px 24px rgba(23,50,77,.1); }
+    .ticket-card-top, .ticket-card-bottom { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .ticket-card-top > span:first-child, .ticket-card-bottom > span:last-child { color: #617386; font-size: 12px; font-weight: 800; }
+    .ticket-card strong { line-height: 1.25; }
+    .ticket-card p { margin-bottom: auto; color: #617386; font-size: 13px; }
+    .status-chip, .urgency-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 26px;
+      padding: 0 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .status-chip.large { min-height: 32px; padding: 0 12px; }
+    .status-chip.new { color: #20476b; background: #dceeff; }
+    .status-chip.read { color: #365314; background: #e7f6d5; }
+    .status-chip.pending { color: #6f4e00; background: #fff2bf; }
+    .status-chip.completed { color: #0b5c46; background: #d7f6eb; }
+    .status-chip.not_applicable { color: #7f1d1d; background: #fde2e2; }
+    .urgency-chip.low { color: #475569; background: #edf2f7; }
+    .urgency-chip.moderate { color: #20476b; background: #dceeff; }
+    .urgency-chip.high { color: #6f4e00; background: #fff2bf; }
+    .urgency-chip.urgent { color: #8a1f11; background: #ffe0d6; }
+    .ticket-detail { display: flex; flex-direction: column; gap: 18px; padding: 20px; }
+    .detail-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+    .ticket-number { display: block; margin-bottom: 6px; color: #617386; font-size: 13px; font-weight: 800; }
+    .detail-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; }
+    .detail-grid div { min-height: 72px; padding: 12px; border: 1px solid #e6edf3; border-radius: 8px; background: #f8fafc; }
+    .detail-grid span { display: block; margin-bottom: 6px; color: #617386; font-size: 12px; font-weight: 800; }
+    .detail-section p, .form-copy p { color: #4b5f73; line-height: 1.6; }
+    .attachment-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .attachment-list span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 34px;
+      padding: 0 10px;
+      border: 1px solid #d9e2ec;
+      border-radius: 8px;
+      color: #23445f;
+      background: #f8fafc;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .resolution-box { display: flex; gap: 12px; padding: 14px; border: 1px solid #bdebdc; border-radius: 8px; background: #effcf7; }
+    .resolution-box p { margin-bottom: 0; color: #20463c; line-height: 1.5; }
+    .history-list { display: grid; gap: 8px; margin: 0; padding-left: 18px; color: #4b5f73; }
+    .action-bar { display: flex; flex-wrap: wrap; gap: 10px; margin-top: auto; padding-top: 16px; border-top: 1px solid #e6edf3; }
+    .action-bar button, .dialog-actions button, .form-submit {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 40px;
+      padding: 0 14px;
+      border: 1px solid #d9e2ec;
+      border-radius: 8px;
+      color: #17324d;
+      font-weight: 800;
+      background: #fff;
+    }
+    .primary { border-color: #17324d !important; color: #fff !important; background: #17324d !important; }
+    .danger { border-color: #f5c2c7 !important; color: #8a1f11 !important; background: #fff5f5 !important; }
+    .form-view { display: grid; grid-template-columns: minmax(240px,.35fr) minmax(420px,1fr); gap: 24px; padding: 24px; }
+    .ticket-form { display: grid; gap: 14px; }
+    .field-row { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+    label { display: grid; gap: 7px; color: #34495d; font-size: 13px; font-weight: 800; }
+    input, select, textarea { width: 100%; min-width: 0; border: 1px solid #d9e2ec; border-radius: 8px; color: #1f2933; background: #fff; outline: 0; }
+    input, select { height: 42px; padding: 0 12px; }
+    textarea { resize: vertical; padding: 12px; line-height: 1.5; }
+    input:disabled { color: #617386; background: #f1f5f9; }
+    .form-submit { justify-self: flex-end; }
+    .notifications-view { display: grid; gap: 16px; padding: 22px; }
+    .notification-list { display: grid; gap: 10px; }
+    .notification-card {
+      display: grid;
+      grid-template-columns: 34px minmax(0,1fr);
+      gap: 12px;
+      width: 100%;
+      min-height: 84px;
+      padding: 14px;
+      border: 1px solid #d9e2ec;
+      border-radius: 8px;
+      color: inherit;
+      text-align: left;
+      background: #fff;
+    }
+    .notification-card.unread { border-color: #2f5f87; background: #f1f8ff; }
+    .notification-card p { margin: 4px 0; color: #4b5f73; }
+    .notification-card small { color: #617386; font-weight: 700; }
+    .empty-state { display: grid; place-items: center; min-height: 220px; padding: 24px; color: #617386; text-align: center; }
+    .dialog-backdrop { position: fixed; inset: 0; display: none; place-items: center; padding: 20px; background: rgba(15,23,42,.45); }
+    .dialog-backdrop.open { display: grid; }
+    .dialog { display: grid; gap: 14px; width: min(520px,100%); padding: 22px; border-radius: 8px; background: #fff; box-shadow: 0 24px 70px rgba(15,23,42,.24); }
+    .dialog p { color: #4b5f73; }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; }
+    button:disabled { cursor: not-allowed; opacity: .52; }
+    .hidden { display: none !important; }
+    @media (max-width: 1080px) {
+      .app-shell { grid-template-columns: 88px minmax(0,1fr); }
+      .sidebar { align-items: center; padding-inline: 12px; }
+      .brand div, .user-panel div, .main-nav button:not(.active), .new-ticket-button { font-size: 0; }
+      .main-nav button { justify-content: center; width: 48px; padding: 0; }
+      .ticket-layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 760px) {
+      .app-shell { display: block; }
+      .sidebar { position: static; flex-direction: row; align-items: center; width: 100%; height: auto; overflow-x: auto; }
+      .main-nav { flex-direction: row; }
+      .user-panel { display: none; }
+      .workspace { padding: 14px; }
+      .topbar, .metric-row, .detail-grid, .form-view, .field-row { grid-template-columns: 1fr; }
+      .form-view { padding: 18px; }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="preview-responsive.css">
+</head>
+<body>
+  <div class="login-screen" id="loginView">
+    <button class="login-theme-toggle" id="loginThemeToggle" type="button" aria-label="Alternar tema">
+      <span class="material-symbols-rounded">dark_mode</span>
+    </button>
+    <div class="login-card">
+      <div class="elephant-container">
+        <img src="Cabelefant.avif" alt="Tintas Marfim" class="elephant-image" onerror="this.style.display='none'">
+      </div>
+      <h1 class="login-title">Login</h1>
+      <form class="login-form" id="loginForm">
+        <div class="input-group">
+          <span class="material-symbols-rounded">person</span>
+          <input type="text" id="loginUser" placeholder="Usuario" autocomplete="username" required>
+        </div>
+        <div class="input-group">
+          <span class="material-symbols-rounded">lock</span>
+          <input type="password" id="loginPass" placeholder="Senha" autocomplete="current-password" required>
+          <button type="button" class="toggle-pass" id="togglePass" aria-label="Mostrar senha"><span class="material-symbols-rounded">visibility</span></button>
+        </div>
+        <p class="login-error hidden" id="loginError">Usuario ou senha invalidos.</p>
+        <button type="submit" class="btn-entrar" id="btnEntrar">Entrar</button>
+      </form>
+      <p class="password-recovery">Esqueceu sua senha?</p>
+      <p class="direitos-autorais">© Todos os direitos reservados a Tintas Marfim</p>
+    </div>
+  </div>
+
+  <div class="app-shell hidden" id="appShell">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark"><span class="material-symbols-rounded">support_agent</span></span>
+        <div><strong>Central de chamados</strong><small>Escritorio interno</small></div>
+      </div>
+      <button class="new-ticket-button" id="newTicketButton" type="button"><span class="material-symbols-rounded">add</span> Abrir chamado</button>
+      <nav class="main-nav" id="mainNav" aria-label="Caixas de chamados"></nav>
+      <button class="user-panel" id="userPanel" type="button" aria-label="Abrir configuracoes da conta">
+        <span class="avatar">MC</span>
+        <div><strong>Marina Costa</strong><small>Financeiro - USER</small></div>
+        <span class="material-symbols-rounded user-panel-caret">settings</span>
+      </button>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar">
+        <div><p class="eyebrow">Setor Financeiro</p><h1>Ola, Marina</h1></div>
+        <label class="search-box"><input id="searchInput" type="search" placeholder="Buscar chamados, funcionario, setor..."></label>
+        <button class="icon-button" id="notificationButton" type="button" aria-label="Abrir atualizacoes"><span class="material-symbols-rounded">notifications</span><span id="topBadge">0</span></button>
+      </header>
+
+      <section class="metric-row" id="metrics"></section>
+
+      <section class="ticket-layout" id="ticketLayout">
+        <div class="ticket-list">
+          <div class="section-heading"><h2 id="viewTitle">Recebidos</h2><span id="ticketCount">0 chamados</span></div>
+          <div id="ticketList"></div>
+        </div>
+        <article class="ticket-detail" id="ticketDetail"></article>
+      </section>
+
+      <section class="form-view hidden" id="formView">
+        <div class="form-copy">
+          <p class="eyebrow">Abertura de chamado</p>
+          <h2>Novo chamado</h2>
+          <p>Solicitante autenticado: Marina Costa - Financeiro</p>
+        </div>
+        <form class="ticket-form" id="ticketForm">
+          <div class="field-row">
+            <label>Nome do funcionario <input type="text" value="Marina Costa" disabled></label>
+            <label>Setor de origem <input type="text" value="Financeiro" disabled></label>
+          </div>
+          <label>Titulo <input id="titleInput" type="text" placeholder="Ex: Erro no fechamento de caixa"></label>
+          <div class="field-row">
+            <label>Setor destinatario
+              <select id="departmentInput">
+                <option>TI</option><option>RH</option><option>Compras</option><option>Faturamento</option><option>Marketing</option><option>Producao</option>
+              </select>
+            </label>
+            <label>Urgencia
+              <select id="urgencyInput">
+                <option value="LOW">Baixo</option><option value="MODERATE" selected>Moderado</option><option value="HIGH">Alta</option><option value="URGENT">Urgente</option>
+              </select>
+            </label>
+          </div>
+          <label>Descricao <textarea id="descriptionInput" rows="6" placeholder="Descreva a solicitacao"></textarea></label>
+          <label>Midias e arquivos
+            <div class="file-drop" id="fileDrop">
+              <input id="attachmentsInput" type="file" multiple>
+              <span class="material-symbols-rounded">cloud_upload</span>
+              <div class="file-drop-text">
+                <strong>Clique para selecionar</strong>
+                <small>ou arraste arquivos e imagens aqui</small>
+              </div>
+            </div>
+            <div class="file-chips" id="fileChips"></div>
+          </label>
+          <button class="primary form-submit" type="submit">Enviar chamado</button>
+        </form>
+      </section>
+
+      <section class="notifications-view hidden" id="notificationsView">
+        <div class="section-heading">
+          <div><p class="eyebrow">Caixa de entrada</p><h2>Atualizacoes recebidas</h2></div>
+          <span id="unreadLabel">0 nao lidas</span>
+        </div>
+        <div class="notification-list" id="notificationList"></div>
+      </section>
+
+      <section class="account-view hidden" id="accountView">
+        <div class="section-heading">
+          <div><p class="eyebrow">Minha conta</p><h2>Configuracoes da conta</h2></div>
+          <button class="account-back" id="accountBack" type="button"><span class="material-symbols-rounded">arrow_back</span> Voltar</button>
+        </div>
+
+        <div class="account-grid">
+          <nav class="account-nav" id="accountNav" aria-label="Secoes de configuracao">
+            <button type="button" class="active" data-account="perfil"><span class="material-symbols-rounded">person</span> Perfil</button>
+            <button type="button" data-account="notificacoes"><span class="material-symbols-rounded">notifications</span> Notificacoes</button>
+            <button type="button" data-account="seguranca"><span class="material-symbols-rounded">lock</span> Seguranca</button>
+            <button type="button" data-account="aparencia"><span class="material-symbols-rounded">palette</span> Aparencia</button>
+          </nav>
+
+          <div class="account-panels">
+            <section class="account-panel" data-panel="perfil">
+              <div class="profile-head">
+                <span class="avatar avatar-lg">MC</span>
+                <div>
+                  <strong>Marina Costa</strong>
+                  <small>Financeiro · Perfil USER</small>
+                  <div class="profile-head-actions">
+                    <button type="button" class="ghost-btn"><span class="material-symbols-rounded">photo_camera</span> Alterar foto</button>
+                  </div>
+                </div>
+              </div>
+              <div class="field-row">
+                <label>Nome completo <input type="text" value="Marina Costa"></label>
+                <label>Cargo <input type="text" value="Analista Financeiro"></label>
+              </div>
+              <div class="field-row">
+                <label>E-mail <input type="email" value="marina.costa@tintasmarfim.com"></label>
+                <label>Telefone <input type="tel" value="(47) 99876-5432"></label>
+              </div>
+              <div class="field-row">
+                <label>Setor
+                  <select>
+                    <option selected>Financeiro</option><option>TI</option><option>RH</option><option>Compras</option><option>Faturamento</option><option>Marketing</option><option>Producao</option>
+                  </select>
+                </label>
+                <label>Matricula <input type="text" value="TM-2041" disabled></label>
+              </div>
+              <div class="account-actions">
+                <button type="button" class="primary">Salvar alteracoes</button>
+              </div>
+            </section>
+
+            <section class="account-panel hidden" data-panel="notificacoes">
+              <h3>Preferencias de notificacao</h3>
+              <label class="switch-row">
+                <span><strong>Atualizacoes de chamados</strong><small>Receba avisos quando um chamado mudar de status.</small></span>
+                <input type="checkbox" class="switch" checked>
+              </label>
+              <label class="switch-row">
+                <span><strong>Notificacoes por e-mail</strong><small>Resumo diario das movimentacoes no seu e-mail.</small></span>
+                <input type="checkbox" class="switch" checked>
+              </label>
+              <label class="switch-row">
+                <span><strong>Alertas de urgencia</strong><small>Avisos imediatos para chamados marcados como urgentes.</small></span>
+                <input type="checkbox" class="switch">
+              </label>
+              <label class="switch-row">
+                <span><strong>Sons de notificacao</strong><small>Tocar um som ao receber novas atualizacoes.</small></span>
+                <input type="checkbox" class="switch">
+              </label>
+              <div class="account-actions">
+                <button type="button" class="primary">Salvar preferencias</button>
+              </div>
+            </section>
+
+            <section class="account-panel hidden" data-panel="seguranca">
+              <h3>Alterar senha</h3>
+              <label>Senha atual <input type="password" placeholder="••••••••"></label>
+              <div class="field-row">
+                <label>Nova senha <input type="password" placeholder="Minimo 8 caracteres"></label>
+                <label>Confirmar nova senha <input type="password" placeholder="Repita a nova senha"></label>
+              </div>
+              <label class="switch-row">
+                <span><strong>Verificacao em duas etapas</strong><small>Exigir um codigo adicional ao entrar.</small></span>
+                <input type="checkbox" class="switch">
+              </label>
+              <div class="account-actions">
+                <button type="button" class="primary">Atualizar senha</button>
+              </div>
+            </section>
+
+            <section class="account-panel hidden" data-panel="aparencia">
+              <h3>Aparencia</h3>
+              <label class="switch-row">
+                <span><strong>Tema escuro</strong><small>Reduz o brilho da interface em ambientes com pouca luz.</small></span>
+                <input type="checkbox" class="switch" id="darkModeSwitch">
+              </label>
+              <label class="switch-row">
+                <span><strong>Modo compacto</strong><small>Diminui o espacamento para mostrar mais conteudo.</small></span>
+                <input type="checkbox" class="switch">
+              </label>
+              <div class="account-actions">
+                <button type="button" class="primary">Salvar</button>
+              </div>
+            </section>
+
+            <div class="account-logout">
+              <button type="button" class="danger" id="logoutButton"><span class="material-symbols-rounded">logout</span> Sair da conta</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="dialog-backdrop" id="resolutionDialog">
+    <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="resolutionTitle">
+      <h2 id="resolutionTitle">Descrever solucao</h2>
+      <p>Para concluir o chamado, informe brevemente como o setor resolveu a solicitacao.</p>
+      <textarea id="resolutionInput" rows="5" placeholder="Ex: Permissao atualizada e acesso validado com o funcionario."></textarea>
+      <div class="dialog-actions">
+        <button type="button" id="cancelResolution">Cancelar</button>
+        <button class="primary" type="button" id="confirmResolution" disabled>Concluir chamado</button>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const statusLabels = { NEW: 'Novo', READ: 'Lido', PENDING: 'Pendente', COMPLETED: 'Concluido', NOT_APPLICABLE: 'Nao cabivel' };
+    const urgencyLabels = { LOW: 'Baixo', MODERATE: 'Moderado', HIGH: 'Alta', URGENT: 'Urgente' };
+    const navItems = [
+      ['inbox', 'Recebidos', 'inbox'], ['pending', 'Pendentes', 'schedule'], ['completed', 'Concluidos', 'check_circle'],
+      ['notApplicable', 'Nao cabiveis', 'block'], ['sent', 'Enviados', 'send'], ['notifications', 'Atualizacoes', 'notifications']
+    ];
+    let activeView = 'inbox';
+    let selectedNumber = 1024;
+    let pendingCompleteNumber = null;
+    let tickets = [
+      { number: 1024, title: 'Divergencia no fechamento de caixa', employeeName: 'Camila Rocha', originDepartment: 'Faturamento', targetDepartment: 'Financeiro', description: 'O valor consolidado do fechamento nao bate com o relatorio emitido no fim do expediente. Anexei o print da tela e a planilha usada na conferencia.', urgency: 'HIGH', status: 'NEW', createdAt: 'Hoje, 08:42', updatedAt: 'Hoje, 08:42', attachments: ['print-fechamento.png','conferencia-caixa.xlsx'], history: ['Chamado aberto por Camila Rocha para Financeiro.'] },
+      { number: 1023, title: 'Aprovacao de compra emergencial', employeeName: 'Rafael Mendes', originDepartment: 'Producao', targetDepartment: 'Financeiro', description: 'Precisamos de aprovacao para compra emergencial de insumos. A producao fica parada se nao houver confirmacao ainda hoje.', urgency: 'URGENT', status: 'PENDING', createdAt: 'Ontem, 16:18', updatedAt: 'Hoje, 09:05', attachments: ['orcamento-fornecedor.pdf'], history: ['Chamado aberto por Rafael Mendes para Financeiro.', 'Marina Costa marcou o chamado como lido.', 'Marina Costa marcou o chamado como pendente: aguardando validacao da diretoria.'] },
+      { number: 1021, title: 'Solicitacao de reembolso de viagem', employeeName: 'Bruna Lima', originDepartment: 'Marketing', targetDepartment: 'Financeiro', description: 'Enviei os comprovantes da viagem de prospeccao e preciso confirmar o prazo para reembolso.', urgency: 'MODERATE', status: 'READ', createdAt: 'Segunda, 10:20', updatedAt: 'Segunda, 11:04', attachments: ['recibos.pdf'], history: ['Chamado aberto por Bruna Lima para Financeiro.', 'Lucas Almeida marcou o chamado como lido.'] },
+      { number: 1018, title: 'Cadastro bancario atualizado', employeeName: 'Pedro Martins', originDepartment: 'RH', targetDepartment: 'Financeiro', description: 'Funcionario alterou conta bancaria para pagamento. Seguem comprovantes para conferencia.', urgency: 'LOW', status: 'COMPLETED', createdAt: '20/06, 14:30', updatedAt: '21/06, 09:12', attachments: ['comprovante-conta.pdf'], resolutionDescription: 'Dados bancarios conferidos e atualizados no cadastro financeiro.', history: ['Chamado aberto por Pedro Martins para Financeiro.', 'Marina Costa marcou o chamado como lido.', 'Marina Costa concluiu o chamado: dados bancarios conferidos e atualizados.'] },
+      { number: 1016, title: 'Alteracao de verba de campanha', employeeName: 'Renata Torres', originDepartment: 'Marketing', targetDepartment: 'Financeiro', description: 'Solicito remanejamento de verba entre duas campanhas ativas.', urgency: 'MODERATE', status: 'NOT_APPLICABLE', createdAt: '19/06, 15:00', updatedAt: '19/06, 16:22', attachments: [], history: ['Chamado aberto por Renata Torres para Financeiro.', 'Lucas Almeida marcou o chamado como lido.', 'Lucas Almeida marcou como nao cabivel: precisa de aprovacao formal da diretoria antes do financeiro atuar.'] },
+      { number: 1009, title: 'Liberacao de acesso ao portal de notas', employeeName: 'Marina Costa', originDepartment: 'Financeiro', targetDepartment: 'TI', description: 'Preciso de acesso ao portal de notas para validar documentos recebidos nesta semana.', urgency: 'HIGH', status: 'COMPLETED', createdAt: '18/06, 09:48', updatedAt: '18/06, 11:10', attachments: ['erro-acesso.png'], resolutionDescription: 'Perfil de acesso atualizado no portal e validado com a usuaria solicitante.', history: ['Chamado aberto por Marina Costa para TI.', 'TI marcou o chamado como lido.', 'TI concluiu o chamado: perfil de acesso atualizado.'] }
+    ];
+    let notifications = [
+      { id: 1, ticketNumber: 1009, title: 'Chamado concluido', message: 'TI concluiu seu chamado "Liberacao de acesso ao portal de notas".', read: false, createdAt: '18/06, 11:10' },
+      { id: 2, ticketNumber: 1012, title: 'Chamado marcado como pendente', message: 'Compras marcou seu chamado como pendente e adicionou uma observacao.', read: false, createdAt: '17/06, 15:30' },
+      { id: 3, ticketNumber: 1003, title: 'Chamado lido', message: 'RH marcou seu chamado como lido.', read: true, createdAt: '14/06, 10:06' }
+    ];
+
+    function el(id) { return document.getElementById(id); }
+    function belongs(ticket, view) {
+      if (view === 'inbox') return ticket.targetDepartment === 'Financeiro' && ['NEW','READ'].includes(ticket.status);
+      if (view === 'pending') return ticket.targetDepartment === 'Financeiro' && ticket.status === 'PENDING';
+      if (view === 'completed') return ticket.targetDepartment === 'Financeiro' && ticket.status === 'COMPLETED';
+      if (view === 'notApplicable') return ticket.targetDepartment === 'Financeiro' && ticket.status === 'NOT_APPLICABLE';
+      if (view === 'sent') return ticket.employeeName === 'Marina Costa';
+      return false;
+    }
+    function visibleTickets() {
+      const term = el('searchInput').value.trim().toLowerCase();
+      return tickets.filter(t => belongs(t, activeView)).filter(t => !term || [t.number, t.title, t.employeeName, t.originDepartment, t.targetDepartment, statusLabels[t.status], urgencyLabels[t.urgency]].join(' ').toLowerCase().includes(term));
+    }
+    const nonTicketViews = ['newTicket','notifications','account'];
+    function setView(view) {
+      activeView = view;
+      if (!nonTicketViews.includes(view)) {
+        const first = visibleTickets()[0];
+        if (first) selectedNumber = first.number;
+      }
+      render();
+    }
+    function notify(ticket, title, message) {
+      notifications.unshift({ id: Date.now(), ticketNumber: ticket.number, title, message: `${message} Chamado #${ticket.number}: "${ticket.title}".`, read: false, createdAt: 'Agora' });
+    }
+    function renderNav() {
+      el('mainNav').innerHTML = navItems.map(([key,label,icon]) => `<button type="button" class="${activeView === key ? 'active' : ''}" data-view="${key}"><span class="material-symbols-rounded nav-icon">${icon}</span>${label}${key === 'notifications' && unreadCount() ? `<span class="nav-badge">${unreadCount()}</span>` : ''}</button>`).join('');
+      document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => setView(button.dataset.view)));
+    }
+    function unreadCount() { return notifications.filter(n => !n.read).length; }
+    function renderMetrics() {
+      const data = [
+        ['Recebidos', tickets.filter(t => ['NEW','READ'].includes(t.status) && t.targetDepartment === 'Financeiro').length, ''],
+        ['Pendentes', tickets.filter(t => t.status === 'PENDING' && t.targetDepartment === 'Financeiro').length, ''],
+        ['Urgentes', tickets.filter(t => t.urgency === 'URGENT').length, 'urgent'],
+        ['Concluidos', tickets.filter(t => t.status === 'COMPLETED' && t.targetDepartment === 'Financeiro').length, '']
+      ];
+      el('metrics').innerHTML = data.map(([label,value,cls]) => `<article class="metric ${cls}"><span>${label}</span><strong>${value}</strong></article>`).join('');
+    }
+    function renderTickets() {
+      const list = visibleTickets();
+      const title = navItems.find(([key]) => key === activeView)?.[1] || 'Chamados';
+      el('viewTitle').textContent = title;
+      el('ticketCount').textContent = `${list.length} chamados`;
+      el('ticketList').innerHTML = list.length ? list.map(ticket => `
+        <button class="ticket-card ${ticket.number === selectedNumber ? 'selected' : ''}" type="button" data-ticket="${ticket.number}">
+          <div class="ticket-card-top"><span>#${ticket.number}</span><span class="status-chip ${ticket.status.toLowerCase()}">${statusLabels[ticket.status]}</span></div>
+          <strong>${ticket.title}</strong>
+          <p>${ticket.employeeName} - ${ticket.originDepartment}</p>
+          <div class="ticket-card-bottom"><span class="urgency-chip ${ticket.urgency.toLowerCase()}">${urgencyLabels[ticket.urgency]}</span><span>${ticket.updatedAt}</span></div>
+        </button>`).join('') : '<div class="empty-state"><strong>Nenhum chamado nesta caixa</strong><p>Quando houver movimentacao, ela aparecera aqui.</p></div>';
+      document.querySelectorAll('[data-ticket]').forEach(button => button.addEventListener('click', () => { selectedNumber = Number(button.dataset.ticket); render(); }));
+      renderDetail();
+    }
+    function renderDetail() {
+      const ticket = tickets.find(t => t.number === selectedNumber) || visibleTickets()[0];
+      if (!ticket) { el('ticketDetail').innerHTML = ''; return; }
+      selectedNumber = ticket.number;
+      const actions = ticket.targetDepartment === 'Financeiro' && ['NEW','READ'].includes(ticket.status)
+        ? `<footer class="action-bar">${ticket.status === 'NEW'
+          ? `<button class="primary" type="button" id="markRead">Marcar como lido</button>`
+          : `<button type="button" id="markPending">Pendente</button><button class="primary" type="button" id="openComplete">Concluir</button><button class="danger" type="button" id="markNotApplicable">Nao cabivel</button>`}</footer>` : '';
+      el('ticketDetail').innerHTML = `
+        <div class="detail-header"><div><span class="ticket-number">Chamado #${ticket.number}</span><h2>${ticket.title}</h2></div><span class="status-chip large ${ticket.status.toLowerCase()}">${statusLabels[ticket.status]}</span></div>
+        <div class="detail-grid"><div><span>Funcionario</span><strong>${ticket.employeeName}</strong></div><div><span>Origem</span><strong>${ticket.originDepartment}</strong></div><div><span>Destino</span><strong>${ticket.targetDepartment}</strong></div><div><span>Urgencia</span><strong>${urgencyLabels[ticket.urgency]}</strong></div></div>
+        <section class="detail-section"><h3>Descricao</h3><p>${ticket.description}</p></section>
+        <section class="detail-section"><h3>Anexos</h3><div class="attachment-list">${ticket.attachments.length ? ticket.attachments.map(a => `<span>${a}</span>`).join('') : '<span>Nenhum anexo informado.</span>'}</div></section>
+        ${ticket.resolutionDescription ? `<section class="resolution-box"><span class="material-symbols-rounded resolution-icon">check_circle</span><div><h3>Solucao aplicada</h3><p>${ticket.resolutionDescription}</p></div></section>` : ''}
+        <section class="detail-section"><h3>Historico</h3><ol class="history-list">${ticket.history.map(item => `<li>${item}</li>`).join('')}</ol></section>
+        ${actions}`;
+      if (el('markRead')) el('markRead').onclick = () => { ticket.status = 'READ'; ticket.updatedAt = 'Agora'; ticket.history.push('Marina Costa marcou o chamado como lido.'); notify(ticket, 'Chamado marcado como lido', 'Financeiro marcou seu chamado como lido.'); render(); };
+      if (el('markPending')) el('markPending').onclick = () => { ticket.status = 'PENDING'; ticket.updatedAt = 'Agora'; ticket.history.push('Marina Costa marcou o chamado como pendente.'); notify(ticket, 'Chamado pendente', 'Financeiro marcou seu chamado como pendente.'); setView('pending'); };
+      if (el('markNotApplicable')) el('markNotApplicable').onclick = () => { ticket.status = 'NOT_APPLICABLE'; ticket.updatedAt = 'Agora'; ticket.history.push('Marina Costa marcou como nao cabivel de solucao no momento.'); notify(ticket, 'Chamado nao cabivel', 'Financeiro marcou seu chamado como nao cabivel no momento.'); setView('notApplicable'); };
+      if (el('openComplete')) el('openComplete').onclick = () => { pendingCompleteNumber = ticket.number; el('resolutionInput').value = ''; el('confirmResolution').disabled = true; el('resolutionDialog').classList.add('open'); };
+    }
+    function renderNotifications() {
+      el('topBadge').textContent = unreadCount();
+      el('unreadLabel').textContent = `${unreadCount()} nao lidas`;
+      el('notificationList').innerHTML = notifications.map(n => `
+        <button class="notification-card ${n.read ? '' : 'unread'}" type="button" data-notification="${n.id}">
+          <span class="notif-icon material-symbols-rounded">${n.read ? 'drafts' : 'mark_email_unread'}</span>
+          <div class="notif-body">
+            <div class="notif-head"><strong>${n.title}</strong><span class="notif-flag ${n.read ? 'read' : 'new'}">${n.read ? 'Lida' : 'Nova'}</span></div>
+            <p>${n.message}</p>
+            <small>Chamado #${n.ticketNumber} · ${n.createdAt}</small>
+          </div>
+        </button>`).join('');
+      document.querySelectorAll('[data-notification]').forEach(button => button.addEventListener('click', () => {
+        const notification = notifications.find(n => n.id === Number(button.dataset.notification));
+        if (notification) notification.read = true;
+        const ticket = tickets.find(t => t.number === notification?.ticketNumber);
+        if (ticket) { selectedNumber = ticket.number; setView('sent'); } else render();
+      }));
+    }
+    function render() {
+      renderNav();
+      renderMetrics();
+      renderNotifications();
+      el('ticketLayout').classList.toggle('hidden', nonTicketViews.includes(activeView));
+      el('metrics').classList.toggle('hidden', nonTicketViews.includes(activeView));
+      el('formView').classList.toggle('hidden', activeView !== 'newTicket');
+      el('notificationsView').classList.toggle('hidden', activeView !== 'notifications');
+      el('accountView').classList.toggle('hidden', activeView !== 'account');
+      if (!nonTicketViews.includes(activeView)) renderTickets();
+    }
+    el('newTicketButton').addEventListener('click', () => setView('newTicket'));
+    el('notificationButton').addEventListener('click', () => setView('notifications'));
+    el('searchInput').addEventListener('input', render);
+    el('ticketForm').addEventListener('submit', event => {
+      event.preventDefault();
+      const next = Math.max(...tickets.map(t => t.number)) + 1;
+      const ticket = {
+        number: next,
+        title: el('titleInput').value || 'Novo chamado sem titulo',
+        employeeName: 'Marina Costa',
+        originDepartment: 'Financeiro',
+        targetDepartment: el('departmentInput').value,
+        description: el('descriptionInput').value || 'Descricao a preencher.',
+        urgency: el('urgencyInput').value,
+        status: 'NEW',
+        createdAt: 'Agora',
+        updatedAt: 'Agora',
+        attachments: Array.from(el('attachmentsInput').files).map(f => f.name),
+        history: [`Chamado aberto por Marina Costa para ${el('departmentInput').value}.`]
+      };
+      tickets.unshift(ticket);
+      selectedNumber = ticket.number;
+      event.target.reset();
+      el('urgencyInput').value = 'MODERATE';
+      el('fileChips').innerHTML = '';
+      el('fileDrop').classList.remove('has-files');
+      setView('sent');
+    });
+    function renderFileChips() {
+      const files = Array.from(el('attachmentsInput').files);
+      el('fileChips').innerHTML = files.map(f => `<span class="file-chip"><span class="material-symbols-rounded">description</span>${f.name}</span>`).join('');
+      el('fileDrop').classList.toggle('has-files', files.length > 0);
+    }
+    el('attachmentsInput').addEventListener('change', renderFileChips);
+    const fileDrop = el('fileDrop');
+    ['dragover','dragenter'].forEach(ev => fileDrop.addEventListener(ev, e => { e.preventDefault(); fileDrop.classList.add('dragging'); }));
+    ['dragleave','dragend'].forEach(ev => fileDrop.addEventListener(ev, e => { e.preventDefault(); fileDrop.classList.remove('dragging'); }));
+    fileDrop.addEventListener('drop', e => {
+      e.preventDefault();
+      fileDrop.classList.remove('dragging');
+      if (e.dataTransfer && e.dataTransfer.files.length) { el('attachmentsInput').files = e.dataTransfer.files; renderFileChips(); }
+    });
+    el('resolutionInput').addEventListener('input', () => { el('confirmResolution').disabled = el('resolutionInput').value.trim().length < 10; });
+    el('cancelResolution').addEventListener('click', () => el('resolutionDialog').classList.remove('open'));
+    el('confirmResolution').addEventListener('click', () => {
+      const ticket = tickets.find(t => t.number === pendingCompleteNumber);
+      const resolution = el('resolutionInput').value.trim();
+      if (!ticket || resolution.length < 10) return;
+      ticket.status = 'COMPLETED';
+      ticket.updatedAt = 'Agora';
+      ticket.resolutionDescription = resolution;
+      ticket.history.push(`Marina Costa concluiu o chamado: ${resolution}`);
+      notify(ticket, 'Chamado concluido', 'Financeiro concluiu seu chamado e descreveu a solucao.');
+      el('resolutionDialog').classList.remove('open');
+      setView('completed');
+    });
+
+    /* ---------- Autenticacao ---------- */
+    const ADMIN = { user: 'admin', pass: 'admin123' };
+    function applyTheme(dark) {
+      document.body.classList.toggle('dark-theme', dark);
+      const loginIcon = el('loginThemeToggle') && el('loginThemeToggle').querySelector('.material-symbols-rounded');
+      if (loginIcon) loginIcon.textContent = dark ? 'light_mode' : 'dark_mode';
+      const sw = el('darkModeSwitch'); if (sw) sw.checked = dark;
+    }
+    function showApp() {
+      el('loginView').classList.add('hidden');
+      el('appShell').classList.remove('hidden');
+      render();
+    }
+    el('loginForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const u = el('loginUser').value.trim().toLowerCase();
+      const p = el('loginPass').value;
+      if (u === ADMIN.user && p === ADMIN.pass) { el('loginError').classList.add('hidden'); showApp(); }
+      else { el('loginError').classList.remove('hidden'); el('loginPass').focus(); el('loginPass').select(); }
+    });
+    el('togglePass').addEventListener('click', () => {
+      const input = el('loginPass');
+      const icon = el('togglePass').querySelector('.material-symbols-rounded');
+      const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      icon.textContent = show ? 'visibility_off' : 'visibility';
+    });
+    el('loginThemeToggle').addEventListener('click', () => applyTheme(!document.body.classList.contains('dark-theme')));
+
+    /* ---------- Conta ---------- */
+    el('userPanel').addEventListener('click', () => setView('account'));
+    el('accountBack').addEventListener('click', () => setView('inbox'));
+    document.querySelectorAll('[data-account]').forEach(btn => btn.addEventListener('click', () => {
+      const target = btn.dataset.account;
+      document.querySelectorAll('[data-account]').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('.account-panel').forEach(p => p.classList.toggle('hidden', p.dataset.panel !== target));
+    }));
+    const darkSwitch = el('darkModeSwitch');
+    if (darkSwitch) darkSwitch.addEventListener('change', () => applyTheme(darkSwitch.checked));
+    el('logoutButton').addEventListener('click', () => {
+      el('appShell').classList.add('hidden');
+      el('loginView').classList.remove('hidden');
+      activeView = 'inbox';
+      el('loginPass').value = '';
+      el('loginUser').focus();
+    });
+
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+# Runtime logs do servidor de preview
+preview-server.err.log
+preview-server.out.log
+
+# Sistema
+.DS_Store
+Thumbs.db
