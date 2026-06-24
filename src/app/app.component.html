@@ -1,0 +1,362 @@
+<div class="login-page" *ngIf="!loggedIn" id="loginView">
+  <button class="theme-toggle" type="button" aria-label="Alternar tema" (click)="applyTheme(!darkTheme)">
+    <i class="fa-regular" [ngClass]="darkTheme ? 'fa-sun' : 'fa-moon'"></i>
+  </button>
+
+  <div class="login-card" #loginCard>
+    <div class="elephant-container">
+      <img src="Cabelefant.avif" alt="Elephant Art" class="elephant-image">
+    </div>
+    <h1 class="login-title">LOGIN</h1>
+    <form class="login-form" (ngSubmit)="login()">
+      <div class="input-group">
+        <input #loginUserInput type="text" placeholder="Usuario" name="username" required [(ngModel)]="loginUser">
+      </div>
+      <div class="input-group">
+        <input #loginPassInput type="password" placeholder="Senha" name="password" required [(ngModel)]="loginPass">
+      </div>
+      <button type="submit" class="btn-entrar">Entrar</button>
+    </form>
+    <p class="password-recovery">Esqueceu sua senha?</p>
+    <p class="direitos-autorais">@Todos os direitos reservados a Tintas Marfim</p>
+  </div>
+</div>
+
+<div class="app-shell" *ngIf="loggedIn" id="appShell">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-mark"><span class="material-symbols-rounded">support_agent</span></span>
+      <div><strong>Central de chamados</strong><small>Escritorio interno</small></div>
+    </div>
+
+    <button class="new-ticket-button" type="button" (click)="setView('newTicket')">
+      <span class="material-symbols-rounded">add</span>
+      Abrir chamado
+    </button>
+
+    <nav class="main-nav" aria-label="Caixas de chamados">
+      <button
+        *ngFor="let item of navItems"
+        type="button"
+        [class.active]="activeView === item.key"
+        (click)="setView(item.key)">
+        <span class="material-symbols-rounded nav-icon">{{ item.icon }}</span>
+        {{ item.label }}
+        <span class="nav-badge" *ngIf="item.key === 'notifications' && unreadCount() > 0">{{ unreadCount() }}</span>
+      </button>
+    </nav>
+
+    <button class="user-panel" type="button" aria-label="Abrir configuracoes da conta" (click)="setView('account')">
+      <span class="avatar">MC</span>
+      <div><strong>Marina Costa</strong><small>Financeiro - USER</small></div>
+      <span class="material-symbols-rounded user-panel-caret">settings</span>
+    </button>
+  </aside>
+
+  <main class="workspace">
+    <header class="topbar">
+      <div><p class="eyebrow">Setor Financeiro</p><h1>Ola, Marina</h1></div>
+      <label class="search-box">
+        <input type="search" placeholder="Buscar chamados, funcionario, setor..." [(ngModel)]="searchTerm">
+      </label>
+      <button class="icon-button" type="button" aria-label="Abrir atualizacoes" (click)="setView('notifications')">
+        <span class="material-symbols-rounded">notifications</span>
+        <span>{{ unreadCount() }}</span>
+      </button>
+    </header>
+
+    <section class="metric-row" *ngIf="!isNonTicketView(activeView)">
+      <article class="metric" *ngFor="let metric of metrics()" [class.urgent]="metric.className === 'urgent'">
+        <span>{{ metric.label }}</span>
+        <strong>{{ metric.value }}</strong>
+      </article>
+    </section>
+
+    <section class="ticket-layout" *ngIf="!isNonTicketView(activeView)">
+      <div class="ticket-list">
+        <div class="section-heading">
+          <h2>{{ currentViewTitle() }}</h2>
+          <span>{{ visibleTickets().length }} chamados</span>
+        </div>
+
+        <ng-container *ngIf="visibleTickets().length; else emptyTicketList">
+          <button
+            class="ticket-card"
+            *ngFor="let ticket of visibleTickets()"
+            type="button"
+            [class.selected]="ticket.number === selectedNumber"
+            (click)="selectTicket(ticket.number)">
+            <div class="ticket-card-top">
+              <span>#{{ ticket.number }}</span>
+              <span class="status-chip" [ngClass]="statusClass(ticket.status)">{{ statusLabels[ticket.status] }}</span>
+            </div>
+            <strong>{{ ticket.title }}</strong>
+            <p>{{ ticket.employeeName }} - {{ ticket.originDepartment }}</p>
+            <div class="ticket-card-bottom">
+              <span class="urgency-chip" [ngClass]="urgencyClass(ticket.urgency)">{{ urgencyLabels[ticket.urgency] }}</span>
+              <span>{{ ticket.updatedAt }}</span>
+            </div>
+          </button>
+        </ng-container>
+
+        <ng-template #emptyTicketList>
+          <div class="empty-state"><strong>Nenhum chamado nesta caixa</strong><p>Quando houver movimentacao, ela aparecera aqui.</p></div>
+        </ng-template>
+      </div>
+
+      <article class="ticket-detail">
+        <ng-container *ngIf="selectedTicket() as ticket">
+          <div class="detail-header">
+            <div><span class="ticket-number">Chamado #{{ ticket.number }}</span><h2>{{ ticket.title }}</h2></div>
+            <span class="status-chip large" [ngClass]="statusClass(ticket.status)">{{ statusLabels[ticket.status] }}</span>
+          </div>
+
+          <div class="detail-grid">
+            <div><span>Funcionario</span><strong>{{ ticket.employeeName }}</strong></div>
+            <div><span>Origem</span><strong>{{ ticket.originDepartment }}</strong></div>
+            <div><span>Destino</span><strong>{{ ticket.targetDepartment }}</strong></div>
+            <div><span>Urgencia</span><strong>{{ urgencyLabels[ticket.urgency] }}</strong></div>
+          </div>
+
+          <section class="detail-section"><h3>Descricao</h3><p>{{ ticket.description }}</p></section>
+
+          <section class="detail-section">
+            <h3>Anexos</h3>
+            <div class="attachment-list">
+              <span *ngFor="let attachment of ticket.attachments">{{ attachment }}</span>
+              <span *ngIf="!ticket.attachments.length">Nenhum anexo informado.</span>
+            </div>
+          </section>
+
+          <section class="resolution-box" *ngIf="ticket.resolutionDescription">
+            <span class="material-symbols-rounded resolution-icon">check_circle</span>
+            <div><h3>Solucao aplicada</h3><p>{{ ticket.resolutionDescription }}</p></div>
+          </section>
+
+          <section class="detail-section">
+            <h3>Historico</h3>
+            <ol class="history-list"><li *ngFor="let item of ticket.history">{{ item }}</li></ol>
+          </section>
+
+          <footer class="action-bar" *ngIf="showActions(ticket)">
+            <button class="primary" type="button" *ngIf="ticket.status === 'NEW'" (click)="markRead(ticket)">Marcar como lido</button>
+            <ng-container *ngIf="ticket.status === 'READ'">
+              <button type="button" (click)="markPending(ticket)">Pendente</button>
+              <button class="primary" type="button" (click)="openComplete(ticket)">Concluir</button>
+              <button class="danger" type="button" (click)="markNotApplicable(ticket)">Nao cabivel</button>
+            </ng-container>
+          </footer>
+        </ng-container>
+      </article>
+    </section>
+
+    <section class="form-view" *ngIf="activeView === 'newTicket'">
+      <div class="form-copy">
+        <p class="eyebrow">Abertura de chamado</p>
+        <h2>Novo chamado</h2>
+        <p>Solicitante autenticado: Marina Costa - Financeiro</p>
+      </div>
+
+      <form class="ticket-form" (ngSubmit)="createTicket()">
+        <div class="field-row">
+          <label>Nome do funcionario <input type="text" value="Marina Costa" disabled></label>
+          <label>Setor de origem <input type="text" value="Financeiro" disabled></label>
+        </div>
+
+        <label>Titulo <input type="text" name="title" placeholder="Ex: Erro no fechamento de caixa" [(ngModel)]="newTicket.title"></label>
+
+        <div class="field-row">
+          <label>Setor destinatario
+            <select name="department" [(ngModel)]="newTicket.targetDepartment">
+              <option *ngFor="let department of targetDepartments" [value]="department">{{ department }}</option>
+            </select>
+          </label>
+          <label>Urgencia
+            <select name="urgency" [(ngModel)]="newTicket.urgency">
+              <option value="LOW">Baixo</option>
+              <option value="MODERATE">Moderado</option>
+              <option value="HIGH">Alta</option>
+              <option value="URGENT">Urgente</option>
+            </select>
+          </label>
+        </div>
+
+        <label>Descricao <textarea name="description" rows="6" placeholder="Descreva a solicitacao" [(ngModel)]="newTicket.description"></textarea></label>
+
+        <label>Midias e arquivos
+          <div
+            class="file-drop"
+            [class.has-files]="attachments.length > 0"
+            [class.dragging]="draggingFiles"
+            (dragover)="onDragOver($event)"
+            (dragenter)="onDragOver($event)"
+            (dragleave)="onDragLeave($event)"
+            (dragend)="onDragLeave($event)"
+            (drop)="onFileDrop($event)">
+            <input #attachmentsInput type="file" multiple (change)="onFilesSelected($event)">
+            <span class="material-symbols-rounded">cloud_upload</span>
+            <div class="file-drop-text">
+              <strong>Clique para selecionar</strong>
+              <small>ou arraste arquivos e imagens aqui</small>
+            </div>
+          </div>
+          <div class="file-chips">
+            <span class="file-chip" *ngFor="let file of attachments"><span class="material-symbols-rounded">description</span>{{ file.name }}</span>
+          </div>
+        </label>
+
+        <button class="primary form-submit" type="submit">Enviar chamado</button>
+      </form>
+    </section>
+
+    <section class="notifications-view" *ngIf="activeView === 'notifications'">
+      <div class="section-heading">
+        <div><p class="eyebrow">Caixa de entrada</p><h2>Atualizacoes recebidas</h2></div>
+        <span>{{ unreadCount() }} nao lidas</span>
+      </div>
+
+      <div class="notification-list">
+        <button
+          class="notification-card"
+          *ngFor="let notification of notifications"
+          type="button"
+          [class.unread]="!notification.read"
+          (click)="openNotification(notification)">
+          <span class="notif-icon material-symbols-rounded">{{ notification.read ? 'drafts' : 'mark_email_unread' }}</span>
+          <div class="notif-body">
+            <div class="notif-head">
+              <strong>{{ notification.title }}</strong>
+              <span class="notif-flag" [ngClass]="notification.read ? 'read' : 'new'">{{ notification.read ? 'Lida' : 'Nova' }}</span>
+            </div>
+            <p>{{ notification.message }}</p>
+            <small>Chamado #{{ notification.ticketNumber }} · {{ notification.createdAt }}</small>
+          </div>
+        </button>
+      </div>
+    </section>
+
+    <section class="account-view" *ngIf="activeView === 'account'">
+      <div class="section-heading">
+        <div><p class="eyebrow">Minha conta</p><h2>Configuracoes da conta</h2></div>
+        <button class="account-back" type="button" (click)="setView('inbox')"><span class="material-symbols-rounded">arrow_back</span> Voltar</button>
+      </div>
+
+      <div class="account-grid">
+        <nav class="account-nav" aria-label="Secoes de configuracao">
+          <button
+            *ngFor="let panel of accountPanels"
+            type="button"
+            [class.active]="activeAccountPanel === panel.key"
+            (click)="activeAccountPanel = panel.key">
+            <span class="material-symbols-rounded">{{ panel.icon }}</span>
+            {{ panel.label }}
+          </button>
+        </nav>
+
+        <div class="account-panels">
+          <section class="account-panel" [class.hidden]="activeAccountPanel !== 'perfil'">
+            <div class="profile-head">
+              <span class="avatar avatar-lg">MC</span>
+              <div>
+                <strong>Marina Costa</strong>
+                <small>Financeiro · Perfil USER</small>
+                <div class="profile-head-actions">
+                  <button type="button" class="ghost-btn"><span class="material-symbols-rounded">photo_camera</span> Alterar foto</button>
+                </div>
+              </div>
+            </div>
+            <div class="field-row">
+              <label>Nome completo <input type="text" value="Marina Costa"></label>
+              <label>Cargo <input type="text" value="Analista Financeiro"></label>
+            </div>
+            <div class="field-row">
+              <label>E-mail <input type="email" value="marina.costa@tintasmarfim.com"></label>
+              <label>Telefone <input type="tel" value="(47) 99876-5432"></label>
+            </div>
+            <div class="field-row">
+              <label>Setor
+                <select>
+                  <option selected>Financeiro</option><option>TI</option><option>RH</option><option>Compras</option><option>Faturamento</option><option>Marketing</option><option>Producao</option>
+                </select>
+              </label>
+              <label>Matricula <input type="text" value="TM-2041" disabled></label>
+            </div>
+            <div class="account-actions">
+              <button type="button" class="primary">Salvar alteracoes</button>
+            </div>
+          </section>
+
+          <section class="account-panel" [class.hidden]="activeAccountPanel !== 'notificacoes'">
+            <h3>Preferencias de notificacao</h3>
+            <label class="switch-row">
+              <span><strong>Atualizacoes de chamados</strong><small>Receba avisos quando um chamado mudar de status.</small></span>
+              <input type="checkbox" class="switch" checked>
+            </label>
+            <label class="switch-row">
+              <span><strong>Notificacoes por e-mail</strong><small>Resumo diario das movimentacoes no seu e-mail.</small></span>
+              <input type="checkbox" class="switch" checked>
+            </label>
+            <label class="switch-row">
+              <span><strong>Alertas de urgencia</strong><small>Avisos imediatos para chamados marcados como urgentes.</small></span>
+              <input type="checkbox" class="switch">
+            </label>
+            <label class="switch-row">
+              <span><strong>Sons de notificacao</strong><small>Tocar um som ao receber novas atualizacoes.</small></span>
+              <input type="checkbox" class="switch">
+            </label>
+            <div class="account-actions">
+              <button type="button" class="primary">Salvar preferencias</button>
+            </div>
+          </section>
+
+          <section class="account-panel" [class.hidden]="activeAccountPanel !== 'seguranca'">
+            <h3>Alterar senha</h3>
+            <label>Senha atual <input type="password" placeholder="••••••••"></label>
+            <div class="field-row">
+              <label>Nova senha <input type="password" placeholder="Minimo 8 caracteres"></label>
+              <label>Confirmar nova senha <input type="password" placeholder="Repita a nova senha"></label>
+            </div>
+            <label class="switch-row">
+              <span><strong>Verificacao em duas etapas</strong><small>Exigir um codigo adicional ao entrar.</small></span>
+              <input type="checkbox" class="switch">
+            </label>
+            <div class="account-actions">
+              <button type="button" class="primary">Atualizar senha</button>
+            </div>
+          </section>
+
+          <section class="account-panel" [class.hidden]="activeAccountPanel !== 'aparencia'">
+            <h3>Aparencia</h3>
+            <label class="switch-row">
+              <span><strong>Tema escuro</strong><small>Reduz o brilho da interface em ambientes com pouca luz.</small></span>
+              <input type="checkbox" class="switch" [checked]="darkTheme" (change)="applyTheme($any($event.target).checked)">
+            </label>
+            <label class="switch-row">
+              <span><strong>Modo compacto</strong><small>Diminui o espacamento para mostrar mais conteudo.</small></span>
+              <input type="checkbox" class="switch">
+            </label>
+            <div class="account-actions">
+              <button type="button" class="primary">Salvar</button>
+            </div>
+          </section>
+
+          <div class="account-logout">
+            <button type="button" class="danger" (click)="logout()"><span class="material-symbols-rounded">logout</span> Sair da conta</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="dialog-backdrop" [class.open]="resolutionDialogOpen">
+  <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="resolutionTitle">
+    <h2 id="resolutionTitle">Descrever solucao</h2>
+    <p>Para concluir o chamado, informe brevemente como o setor resolveu a solicitacao.</p>
+    <textarea rows="5" placeholder="Ex: Permissao atualizada e acesso validado com o funcionario." [(ngModel)]="resolutionInput"></textarea>
+    <div class="dialog-actions">
+      <button type="button" (click)="cancelResolution()">Cancelar</button>
+      <button class="primary" type="button" [disabled]="resolutionInput.trim().length < 10" (click)="confirmResolution()">Concluir chamado</button>
+    </div>
+  </section>
+</div>
